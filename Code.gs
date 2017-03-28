@@ -320,11 +320,11 @@ function log_(msgArgs, level) {
 
 //  rolls over the log if we need to
 function rollLogOver_() {
+  // get a lock or throw exception
+  var lock = LockService.getScriptLock()
+  lock.waitLock(10000); //try for 10 secs to get a lock, long enough to rollover the log
   var rowCount = call_(function() {return sheet_.getLastRow();});
   if (rowCount > SHEET_MAX_ROWS) {
-    
-    // get a lock or throw exception
-    var lock = LockService.getScriptLock().waitLock(10000); //try for 10 secs to get a lock, long enough to rollover the log
     
     //copy the log
     var ss = sheet_.getParent();
@@ -342,9 +342,9 @@ function rollLogOver_() {
     sheet_.getRange("A2").setValue(['Log reached ' + rowCount + ' rows (MAX_ROWS is ' + SHEET_MAX_ROWS + ') and was cleared. Previous log is available here:']);
     sheet_.appendRow([oldLog.getUrl()]);
     
-    //release lock 
-    lock.releaseLock();
   }
+  //release lock 
+  lock.releaseLock();
 }
 
 //logs to spreadsheet
